@@ -1,0 +1,13 @@
+---
+description: RideWise repo scope — mobile-app only until the user commands otherwise
+alwaysApply: true
+---
+
+# Repo scope
+
+RideWise is one git repo with three sibling apps. Default work is **`mobile-app/`**.
+
+- Do not create, edit, delete, or run installs in **`api/`** or **`landing/`** until the user explicitly commands work on those folders.
+- Do not “helpfully” scaffold, restyle, or wire the API or landing page as a side effect of a mobile task.
+- Load `.cursor/skills/ridewise-mobile/SKILL.md` when changing the Expo app.
+- Follow approval-gated milestones: finish one mobile feature, then wait.
