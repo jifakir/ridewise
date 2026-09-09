@@ -1,0 +1,9 @@
+{
+  "name": "ridewise",
+  "private": true,
+  "scripts": {
+    "mobile": "npm run start --prefix mobile-app",
+    "api": "npm run dev --prefix api",
+    "landing": "npm run dev --prefix landing"
+  }
+}
