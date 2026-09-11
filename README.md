@@ -2,6 +2,8 @@
 
 Offline-first personal wallet for riders. **Spend smart. Ride more.**
 
+**Milestones (source of truth):** [MILESTONES.md](MILESTONES.md) — both developers update that file, not Cursor-only plans.
+
 One git repo, three independent sibling apps. Each has its own `node_modules`.
 
 | Folder | App | Setup | Run |

@@ -9,13 +9,13 @@ description: >-
 
 # RideWise mobile-app
 
-Offline-first rider wallet. Product source of truth: [ProjectBlueprint.md](../../../ProjectBlueprint.md). Stack details: [reference.md](reference.md).
+Offline-first rider wallet. Product: [ProjectBlueprint.md](../../../ProjectBlueprint.md). Delivery status: [MILESTONES.md](../../../MILESTONES.md) (single source of truth). Stack: [reference.md](reference.md).
 
 ## Scope
 
 - Default work is **`mobile-app/` only**.
 - Do not create, edit, delete, or install in **`api/`** or **`landing/`** until the user commands it.
-- One feature milestone at a time. After a feature ships, stop and wait for approval before the next.
+- Follow **[MILESTONES.md](../../../MILESTONES.md)** only. Claim the milestone in Current work before coding. Do not start the next one until the current row is `Done`. Do not invent a parallel plan.
 
 ## Stack (do not change without asking)
 
@@ -45,6 +45,6 @@ Screens must not run raw SQL. V1 is local-only: no auth, no backend, no cloud.
 2. New screens follow NativeWind tokens and placeholder patterns already in `mobile-app/src/components`.
 3. Empty states stay honest (zeros / “not yet”), not fake charts.
 
-## Next milestones (after M1)
+## Next milestone
 
-M2 Welcome → M3 Bike setup → M4 SQLite → M5 Repos + categories → M6 Add Expense → M7 Transactions list → M8 Edit/delete → M9 Bike profile → M10 Add Fuel → M11 Mileage → M12 Live Home → M13 Reports → M14 Backup export → M15 Restore → M16 Polish.
+Do not hardcode the next ID here. Read the Status table in [MILESTONES.md](../../../MILESTONES.md).

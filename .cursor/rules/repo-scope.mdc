@@ -10,4 +10,4 @@ RideWise is one git repo with three sibling apps. Default work is **`mobile-app/
 - Do not create, edit, delete, or run installs in **`api/`** or **`landing/`** until the user explicitly commands work on those folders.
 - Do not “helpfully” scaffold, restyle, or wire the API or landing page as a side effect of a mobile task.
 - Load `.cursor/skills/ridewise-mobile/SKILL.md` when changing the Expo app.
-- Follow approval-gated milestones: finish one mobile feature, then wait.
+- Milestones: **[MILESTONES.md](MILESTONES.md)** is the single source of truth. Do not use Cursor Plan-mode files outside the repo. Update Current work / Status when starting or finishing a milestone.

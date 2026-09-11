@@ -4,6 +4,8 @@
 
 Independent siblings in one git repo. Each app has its own `node_modules`.
 
+Delivery status: **[MILESTONES.md](../../../MILESTONES.md)** — not Cursor Plan-mode files.
+
 | Folder | Role | Touch? |
 | --- | --- | --- |
 | `mobile-app/` | Expo app | Yes (default) |
