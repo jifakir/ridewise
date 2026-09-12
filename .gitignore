@@ -20,3 +20,9 @@ yarn-error.*
 .kotlin/
 *.orig.*
 .turbo
+
+**/yarn.lock
+
+**/package-lock.json
+
+**/pnpm-lock.yaml
