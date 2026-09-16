@@ -10,7 +10,8 @@ import { useWelcomeGate, WelcomeGateProvider } from '@/src/features/onboarding/u
 void SplashScreen.preventAutoHideAsync();
 
 function RootNavigator() {
-  const { ready, welcomeCompleted } = useWelcomeGate();
+  const { ready, welcomeCompleted, bike } = useWelcomeGate();
+  const hasBike = bike !== null;
 
   useEffect(() => {
     if (ready) {
@@ -29,7 +30,10 @@ function RootNavigator() {
         <Stack.Protected guard={!welcomeCompleted}>
           <Stack.Screen name="welcome" />
         </Stack.Protected>
-        <Stack.Protected guard={welcomeCompleted}>
+        <Stack.Protected guard={welcomeCompleted && !hasBike}>
+          <Stack.Screen name="setup-bike" />
+        </Stack.Protected>
+        <Stack.Protected guard={welcomeCompleted && hasBike}>
           <Stack.Screen name="(tabs)" />
         </Stack.Protected>
         <Stack.Screen name="+not-found" />

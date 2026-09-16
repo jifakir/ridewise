@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { useState } from 'react';
 
 import { WelcomeScreen } from '@/src/components/welcome/WelcomeScreen';
@@ -13,7 +13,7 @@ export default function WelcomeRoute() {
     if (busy) return;
     setBusy(true);
     await completeWelcome();
-    router.replace('/(tabs)');
+    router.replace('/setup-bike' as Href);
   }
 
   return <WelcomeScreen busy={busy} onGetStarted={handleGetStarted} />;
