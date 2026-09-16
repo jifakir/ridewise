@@ -35,8 +35,8 @@ Default work is `mobile-app/` only. Do not touch `api/` or `landing/` until this
 | M1 | Project + Home UI | Done |
 | M2 | Welcome | Done |
 | M3 | Bike setup | Done |
-| M4 | SQLite schema | Next |
-| M5 | Repos + categories | Pending |
+| M4 | SQLite schema | Done |
+| M5 | Repos + categories | Next |
 | M6 | Add Expense | Pending |
 | M7 | Transactions list | Pending |
 | M8 | Edit/delete expense | Pending |

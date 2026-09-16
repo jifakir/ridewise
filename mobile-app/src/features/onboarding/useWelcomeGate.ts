@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react';
 
+import { openRideWiseDatabase } from '@/src/database/sqlite';
 import { getActiveBike, persistActiveBike, type StoredBike } from '@/src/features/bikes/bikeStorage';
 
 import { getWelcomeCompleted, persistWelcomeCompleted } from './welcomeStorage';
@@ -31,7 +32,13 @@ export function WelcomeGateProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
-    Promise.all([getWelcomeCompleted(), getActiveBike()]).then(([done, activeBike]) => {
+    Promise.all([
+      openRideWiseDatabase().catch((error: unknown) => {
+        console.error('RideWise database failed to open', error);
+      }),
+      getWelcomeCompleted(),
+      getActiveBike(),
+    ]).then(([, done, activeBike]) => {
       if (cancelled) return;
       setWelcomeCompleted(done);
       setBike(activeBike);
