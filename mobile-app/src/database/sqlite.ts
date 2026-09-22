@@ -1,6 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 
 import { assertSchema, migrate, SCHEMA_VERSION } from './migrate';
+import { seedDefaultCategories } from './seed';
 
 export const DATABASE_NAME = 'ridewise.db';
 
@@ -12,6 +13,7 @@ async function openAndMigrate(): Promise<SQLite.SQLiteDatabase> {
   const db = await SQLite.openDatabaseAsync(DATABASE_NAME);
   await migrate(db);
   await assertSchema(db);
+  await seedDefaultCategories(db);
   return db;
 }
 
