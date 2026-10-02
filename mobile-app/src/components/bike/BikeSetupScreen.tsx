@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { NameField } from '@/src/components/bike/NameField';
 import { BrandIllustration } from '@/src/components/bike/illustrations/BrandIllustration';
 import { ModelIllustration } from '@/src/components/bike/illustrations/ModelIllustration';
 import { OdoIllustration } from '@/src/components/bike/illustrations/OdoIllustration';
@@ -20,21 +21,13 @@ import {
   modelsForBrand,
   OTHER_BRAND,
 } from '@/src/features/bikes/bangladeshMotorcycles';
+import { parseOdo } from '@/src/features/bikes/odo';
 import { colors } from '@/src/theme/colors';
 
 type BikeSetupScreenProps = {
   busy?: boolean;
   onSave: (bike: { brand: string; model: string; currentOdo: number }) => void;
 };
-
-function parseOdo(value: string): number | null {
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  if (!/^\d+$/.test(trimmed)) return null;
-  const odo = Number(trimmed);
-  if (!Number.isSafeInteger(odo) || odo < 0) return null;
-  return odo;
-}
 
 function StepBar({ step }: { step: number }) {
   return (
@@ -112,34 +105,6 @@ function SearchField({
           <Ionicons name="close-circle" size={18} color={colors.muted} />
         </Pressable>
       ) : null}
-    </View>
-  );
-}
-
-function NameField({
-  value,
-  onChangeText,
-  label,
-  placeholder,
-}: {
-  value: string;
-  onChangeText: (text: string) => void;
-  label: string;
-  placeholder: string;
-}) {
-  return (
-    <View className="mt-3 rounded-3xl bg-card px-5 py-4">
-      <Text className="text-sm text-muted">{label}</Text>
-      <TextInput
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor={colors.muted}
-        autoCapitalize="words"
-        autoCorrect={false}
-        accessibilityLabel={label}
-        className="mt-1 py-1 text-[18px] font-semibold text-foreground"
-      />
     </View>
   );
 }
@@ -250,6 +215,7 @@ export function BikeSetupScreen({ busy = false, onSave }: BikeSetupScreenProps) 
                 <SearchField value={query} onChangeText={setQuery} placeholder="Search brands" />
                 {brandChoice === OTHER_BRAND ? (
                   <NameField
+                    className="mt-3"
                     value={customBrand}
                     onChangeText={setCustomBrand}
                     label="Brand name"
@@ -283,6 +249,7 @@ export function BikeSetupScreen({ busy = false, onSave }: BikeSetupScreenProps) 
                 />
                 {customModelOnly ? (
                   <NameField
+                    className="mt-3"
                     value={customModel}
                     onChangeText={setCustomModel}
                     label="Model name"
@@ -293,6 +260,7 @@ export function BikeSetupScreen({ busy = false, onSave }: BikeSetupScreenProps) 
                     <SearchField value={query} onChangeText={setQuery} placeholder="Search models" />
                     {modelChoice === OTHER_BRAND ? (
                       <NameField
+                        className="mt-3"
                         value={customModel}
                         onChangeText={setCustomModel}
                         label="Model name"

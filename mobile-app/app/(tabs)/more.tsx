@@ -1,5 +1,5 @@
-import { PlaceholderScreen } from '@/src/components/PlaceholderScreen';
+import { MoreScreen } from '@/src/components/more/MoreScreen';
 
-export default function MoreScreen() {
-  return <PlaceholderScreen title="More" nextMilestone="bike, categories, backup, and settings" />;
+export default function MoreRoute() {
+  return <MoreScreen />;
 }

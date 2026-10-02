@@ -1,12 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
 
+import { formatOdo } from '@/src/features/bikes/odo';
 import { useWelcomeGate } from '@/src/features/onboarding/useWelcomeGate';
 import { colors } from '@/src/theme/colors';
-
-function formatOdo(km: number) {
-  return `${km.toLocaleString('en-US')} km`;
-}
 
 export function BikeCard() {
   const { bike } = useWelcomeGate();

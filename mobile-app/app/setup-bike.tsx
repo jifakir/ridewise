@@ -12,8 +12,12 @@ export default function SetupBikeRoute() {
   async function handleSave(bike: { brand: string; model: string; currentOdo: number }) {
     if (busy) return;
     setBusy(true);
-    await saveBike(bike);
-    router.replace('/(tabs)');
+    try {
+      await saveBike(bike);
+      router.replace('/(tabs)');
+    } finally {
+      setBusy(false);
+    }
   }
 
   return <BikeSetupScreen busy={busy} onSave={handleSave} />;

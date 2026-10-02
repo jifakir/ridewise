@@ -10,16 +10,16 @@ import {
 } from 'react';
 
 import { openRideWiseDatabase } from '@/src/database/sqlite';
-import { getActiveBike, persistActiveBike, type StoredBike } from '@/src/features/bikes/bikeStorage';
+import { getActiveBike, saveActiveBike, type Bike, type BikeInput } from '@/src/repositories/bikeRepository';
 
 import { getWelcomeCompleted, persistWelcomeCompleted } from './welcomeStorage';
 
 type WelcomeGateValue = {
   ready: boolean;
   welcomeCompleted: boolean;
-  bike: StoredBike | null;
+  bike: Bike | null;
   completeWelcome: () => Promise<void>;
-  saveBike: (bike: StoredBike) => Promise<void>;
+  saveBike: (bike: BikeInput) => Promise<void>;
 };
 
 const WelcomeGateContext = createContext<WelcomeGateValue | null>(null);
@@ -27,7 +27,7 @@ const WelcomeGateContext = createContext<WelcomeGateValue | null>(null);
 export function WelcomeGateProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [welcomeCompleted, setWelcomeCompleted] = useState(false);
-  const [bike, setBike] = useState<StoredBike | null>(null);
+  const [bike, setBike] = useState<Bike | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -37,7 +37,10 @@ export function WelcomeGateProvider({ children }: { children: ReactNode }) {
         console.error('RideWise database failed to open', error);
       }),
       getWelcomeCompleted(),
-      getActiveBike(),
+      getActiveBike().catch((error: unknown) => {
+        console.error('RideWise bike failed to load', error);
+        return null;
+      }),
     ]).then(([, done, activeBike]) => {
       if (cancelled) return;
       setWelcomeCompleted(done);
@@ -58,12 +61,9 @@ export function WelcomeGateProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const saveBike = useCallback(async (nextBike: StoredBike) => {
-    try {
-      await persistActiveBike(nextBike);
-    } finally {
-      setBike(nextBike);
-    }
+  const saveBike = useCallback(async (nextBike: BikeInput) => {
+    const saved = await saveActiveBike(nextBike);
+    setBike(saved);
   }, []);
 
   const value = useMemo(
