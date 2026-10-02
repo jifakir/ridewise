@@ -1,5 +1,5 @@
-import { PlaceholderScreen } from '@/src/components/PlaceholderScreen';
+import { TransactionsScreen } from '@/src/components/transactions/TransactionsScreen';
 
-export default function TransactionsScreen() {
-  return <PlaceholderScreen title="Transactions" nextMilestone="full expense history" />;
+export default function TransactionsRoute() {
+  return <TransactionsScreen />;
 }
