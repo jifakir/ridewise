@@ -41,8 +41,8 @@ Default work is `mobile-app/` only. Do not touch `api/` or `landing/` until this
 | M7 | Transactions list | Done |
 | M8 | Edit/delete expense | Done |
 | M9 | Bike profile | Done |
-| M10 | Add Fuel | Next |
-| M11 | Mileage | Pending |
+| M10 | Add Fuel | Done |
+| M11 | Mileage | Next |
 | M12 | Live Home data | Pending |
 | M13 | Reports | Pending |
 | M14 | Backup export | Pending |

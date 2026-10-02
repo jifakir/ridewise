@@ -1,7 +1,7 @@
 import type { CategoryType, TransactionRow } from '@/src/database/schema/types';
 import { getRideWiseDatabase } from '@/src/database/sqlite';
 
-import { createId, timestampNow } from './support';
+import { blankToNull, createId, timestampNow } from './support';
 
 export type Expense = {
   id: string;
@@ -49,12 +49,6 @@ function roundAmount(amount: number): number {
   return rounded;
 }
 
-function blankToNull(value: string | null | undefined): string | null {
-  if (value == null) return null;
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
-}
-
 function likePattern(search: string | undefined): string | null {
   const trimmed = search?.trim().replace(/^৳/, '').replace(/,/g, '') ?? '';
   if (!trimmed) return null;
@@ -75,8 +69,8 @@ function toExpense(row: TransactionRow): Expense {
 }
 
 /**
- * Saves a normal expense. Fuel litres, price, and ODO stay out of this path.
- * bike_id stays empty until the active bike lives in the bikes table.
+ * Saves a normal expense. Fuel litres, price, and ODO go through the fuel log.
+ * bike_id stays empty on this path.
  */
 export async function addExpense(input: NewExpense): Promise<Expense> {
   const amount = roundAmount(input.amount);

@@ -17,14 +17,21 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CategoryPickerModal } from '@/src/components/expenses/CategoryPickerModal';
+import { FuelFields } from '@/src/components/fuel/FuelFields';
 import { BackButton } from '@/src/components/navigation/BackButton';
+import { FUEL_CATEGORY_ID } from '@/src/database/seed';
 import { PAYMENT_METHODS, type PaymentMethod } from '@/src/features/expenses/paymentMethods';
+import { fuelEntryState, sanitizeVolumeInput, type FuelCapture } from '@/src/features/fuel/calculate';
 import { listCategories, type Category } from '@/src/repositories/categoryRepository';
 import type { ExpenseChanges } from '@/src/repositories/expenseRepository';
 import { colors } from '@/src/theme/colors';
 import { atLocalNoon, dayLabel, endOfToday, isSameDay, shiftDays } from '@/src/utils/dates';
 import { iconName } from '@/src/utils/icons';
 import { formatBdt, parseAmount, sanitizeAmountInput } from '@/src/utils/money';
+
+export type ExpenseDraft = ExpenseChanges & {
+  fuel?: FuelCapture;
+};
 
 const PAYMENT_ICONS: Record<PaymentMethod, keyof typeof Ionicons.glyphMap> = {
   Cash: 'cash-outline',
@@ -47,8 +54,10 @@ type ExpenseFormProps = {
   initialDate?: Date;
   startWithDetails?: boolean;
   resetOnSuccess?: boolean;
+  captureFuel?: boolean;
+  activeOdo?: number | null;
   onDelete?: () => Promise<void>;
-  onSubmit: (draft: ExpenseChanges) => Promise<void>;
+  onSubmit: (draft: ExpenseDraft) => Promise<void>;
 };
 
 function SectionHeading({ title }: { title: string }) {
@@ -68,6 +77,8 @@ export function ExpenseForm({
   initialDate,
   startWithDetails = false,
   resetOnSuccess = false,
+  captureFuel = false,
+  activeOdo = null,
   onDelete,
   onSubmit,
 }: ExpenseFormProps) {
@@ -83,6 +94,10 @@ export function ExpenseForm({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(initialPaymentMethod);
   const [date, setDate] = useState(() => initialDate ?? new Date());
   const [pickingDate, setPickingDate] = useState(false);
+  const [litres, setLitres] = useState('');
+  const [pricePerLitre, setPricePerLitre] = useState('');
+  const [odo, setOdo] = useState('');
+  const [allowLowerOdo, setAllowLowerOdo] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savedLabel, setSavedLabel] = useState<string | null>(null);
@@ -103,7 +118,18 @@ export function ExpenseForm({
 
   const parsedAmount = parseAmount(amount);
   const selected = categories?.find((category) => category.id === categoryId) ?? null;
-  const canSave = parsedAmount !== null && selected !== null && !saving;
+  const fuelMode = captureFuel && selected?.id === FUEL_CATEGORY_ID;
+  const fuel = fuelMode
+    ? fuelEntryState({
+        amount: parsedAmount,
+        litresText: litres,
+        priceText: pricePerLitre,
+        odoText: odo,
+        activeOdo,
+        allowLowerOdo,
+      })
+    : null;
+  const canSave = parsedAmount !== null && selected !== null && !saving && (fuel === null || fuel.canSave);
   const amountInvalid = amount.length > 0 && !amount.endsWith('.') && parsedAmount === null;
   const canPickCategory = (categories?.length ?? 0) > 0;
   const categoryLabel = selected
@@ -133,13 +159,14 @@ export function ExpenseForm({
     savingRef.current = true;
     setSaving(true);
     setSaveError(null);
-    const draft: ExpenseChanges = {
+    const draft: ExpenseDraft = {
       amount: parsedAmount,
       categoryId: selected.id,
       date: date.getTime(),
       note,
       paymentMethod,
     };
+    if (fuel?.capture) draft.fuel = fuel.capture;
     let leaving = false;
     try {
       await onSubmit(draft);
@@ -150,6 +177,10 @@ export function ExpenseForm({
       setSavedLabel(`Saved ${formatBdt(parsedAmount)} · ${selected.name}`);
       setAmount('');
       setCategoryId(null);
+      setLitres('');
+      setPricePerLitre('');
+      setOdo('');
+      setAllowLowerOdo(false);
       setNote('');
       setPaymentMethod(null);
       setDate(new Date());
@@ -277,6 +308,33 @@ export function ExpenseForm({
                 <Text className="text-sm font-semibold text-primary">{selected ? 'Change' : 'Choose'}</Text>
               ) : null}
             </Pressable>
+
+            {fuelMode && fuel ? (
+              <FuelFields
+                litres={litres}
+                price={pricePerLitre}
+                odo={odo}
+                notice={fuel.notice}
+                needsLowerConfirm={fuel.needsLowerConfirm}
+                onLitresChange={(text) => {
+                  setLitres(sanitizeVolumeInput(text));
+                  clearSaved();
+                }}
+                onPriceChange={(text) => {
+                  setPricePerLitre(sanitizeAmountInput(text));
+                  clearSaved();
+                }}
+                onOdoChange={(text) => {
+                  setOdo(text);
+                  setAllowLowerOdo(false);
+                  clearSaved();
+                }}
+                onAllowLowerOdo={() => {
+                  setAllowLowerOdo(true);
+                  clearSaved();
+                }}
+              />
+            ) : null}
 
             <View>
               <Pressable

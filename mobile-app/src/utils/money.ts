@@ -7,14 +7,19 @@ export function formatBdt(amount: number): string {
   return `${negative ? '-' : ''}৳${body}`;
 }
 
-/** Keep a single decimal point and at most two fraction digits while typing. */
-export function sanitizeAmountInput(value: string): string {
+/** Keep a single decimal point and at most `fractionDigits` while typing. */
+export function sanitizeDecimalInput(value: string, fractionDigits: number): string {
   const cleaned = value.replace(/[^\d.]/g, '');
   const dot = cleaned.indexOf('.');
   if (dot === -1) return cleaned;
   const whole = cleaned.slice(0, dot);
-  const fraction = cleaned.slice(dot + 1).replace(/\./g, '').slice(0, 2);
+  const fraction = cleaned.slice(dot + 1).replace(/\./g, '').slice(0, fractionDigits);
   return `${whole}.${fraction}`;
+}
+
+/** Keep a single decimal point and at most two fraction digits while typing. */
+export function sanitizeAmountInput(value: string): string {
+  return sanitizeDecimalInput(value, 2);
 }
 
 /** Digits for the amount field. Whole taka stay whole. */

@@ -18,3 +18,9 @@ export function toFlag(value: boolean): SqliteFlag {
 export function fromFlag(value: SqliteFlag): boolean {
   return value === 1;
 }
+
+export function blankToNull(value: string | null | undefined): string | null {
+  if (value == null) return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
