@@ -42,7 +42,7 @@ Screens must not run raw SQL. V1 is local-only: no auth, no backend, no cloud.
 ## UI workflow
 
 1. Keep existing Home/tab structure unless the user asks to change it.
-2. New screens follow NativeWind tokens and placeholder patterns already in `mobile-app/src/components`.
+2. Follow [.cursor/rules/mobile-ui.mdc](../../rules/mobile-ui.mdc): existing layout and colors, and one shared component, util, or type instead of a copy.
 3. Empty states stay honest (zeros / “not yet”), not fake charts.
 
 ## Next milestone

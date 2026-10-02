@@ -1,0 +1,24 @@
+---
+description: RideWise mobile UI reuses existing structure, colors, components, utils, and types
+alwaysApply: true
+---
+
+# Mobile UI and shared code
+
+When changing `mobile-app/`, match the screens already there. Search before adding a component, util, or type. If it exists, import it.
+
+## Structure and color
+
+- Page: `SafeAreaView` `bg-canvas`, scroll `px-5 pt-2`, title `text-2xl font-bold text-foreground`, subtitle `text-sm text-muted`, blocks in `gap-4`.
+- Cards and empty states: `rounded-3xl bg-card`. Empty state is centered `px-6 py-10`, title `text-base font-semibold text-foreground`, body `text-sm text-muted`.
+- Rows: icon tile `h-10 w-10 rounded-xl bg-primary/15`, label `text-[16px]`, hairline `border-t border-black/5`. Same row as bike options, categories, and transactions.
+- Actions: `rounded-full bg-primary`. Orange is the action and the important number.
+- Colors come from `mobile-app/tailwind.config.js` and `mobile-app/src/theme/colors.ts` (`primary`, `ink`, `foreground`, `muted`, `canvas`, `card`). No new hex values. `className` only — no `StyleSheet.create`.
+- Leave Home, the tab bar, and any existing screen as they are unless the task is to change that screen.
+
+## Split once
+
+- Screens compose UI. Shared UI lives in `mobile-app/src/components/`.
+- Pure helpers (money, dates, ids) live in `mobile-app/src/utils/` or the module that already owns them.
+- Types live with the data they describe (`src/database/schema/types.ts`, a repository, a feature). A screen does not declare a second copy.
+- Do not paste a row, field, modal, formatter, or icon map into another file. Move the shared piece to one module and import it in both places.
