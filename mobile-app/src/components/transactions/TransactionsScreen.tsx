@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Animated, {
@@ -16,6 +16,8 @@ import {
   type ExpenseTypeFilter,
 } from '@/src/repositories/expenseRepository';
 import { colors } from '@/src/theme/colors';
+import { dayKey, dayLabel } from '@/src/utils/dates';
+import { iconName } from '@/src/utils/icons';
 import { formatBdt } from '@/src/utils/money';
 
 const FILTERS: { id: ExpenseTypeFilter; label: string }[] = [
@@ -26,30 +28,6 @@ const FILTERS: { id: ExpenseTypeFilter; label: string }[] = [
 
 const TAB_MS = 240;
 const TAB_EASE = Easing.out(Easing.cubic);
-
-function iconName(icon: string | null): keyof typeof Ionicons.glyphMap {
-  if (icon && icon in Ionicons.glyphMap) {
-    return icon as keyof typeof Ionicons.glyphMap;
-  }
-  return 'pricetag-outline';
-}
-
-function startOfDay(date: Date): Date {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
-
-function dayKey(timestamp: number): string {
-  const date = new Date(timestamp);
-  return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-}
-
-function dayLabel(timestamp: number, now = new Date()): string {
-  const date = new Date(timestamp);
-  const diffDays = Math.round((startOfDay(now).getTime() - startOfDay(date).getTime()) / 86_400_000);
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Yesterday';
-  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-}
 
 function detailLine(item: ExpenseListItem): string | null {
   const parts = [item.note, item.paymentMethod].filter((part): part is string => Boolean(part));
@@ -158,6 +136,7 @@ function HistoryFilter({
 }
 
 export function TransactionsScreen() {
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [type, setType] = useState<ExpenseTypeFilter>('all');
   const [items, setItems] = useState<ExpenseListItem[] | null>(null);
@@ -250,9 +229,14 @@ export function TransactionsScreen() {
                 {group.items.map((item, index) => {
                   const detail = detailLine(item);
                   return (
-                    <View
+                    <Pressable
                       key={item.id}
-                      className={`flex-row items-center px-4 py-3 ${index > 0 ? 'border-t border-black/5' : ''}`}>
+                      accessibilityRole="button"
+                      accessibilityLabel={`${item.categoryName}, ${formatBdt(item.amount)}`}
+                      onPress={() => router.push(`/expense/${item.id}`)}
+                      className={`flex-row items-center px-4 py-3 active:opacity-70 ${
+                        index > 0 ? 'border-t border-black/5' : ''
+                      }`}>
                       <View className="h-10 w-10 items-center justify-center rounded-xl bg-primary/15">
                         <Ionicons name={iconName(item.categoryIcon)} size={20} color={colors.primary} />
                       </View>
@@ -267,7 +251,7 @@ export function TransactionsScreen() {
                         ) : null}
                       </View>
                       <Text className="ml-3 text-base font-bold text-primary">{formatBdt(item.amount)}</Text>
-                    </View>
+                    </Pressable>
                   );
                 })}
               </View>

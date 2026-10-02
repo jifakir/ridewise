@@ -17,6 +17,13 @@ export function sanitizeAmountInput(value: string): string {
   return `${whole}.${fraction}`;
 }
 
+/** Digits for the amount field. Whole taka stay whole. */
+export function amountInputValue(amount: number): string {
+  const rounded = Math.round(amount * 100) / 100;
+  if (Number.isInteger(rounded)) return String(rounded);
+  return rounded.toFixed(2).replace(/0$/, '');
+}
+
 /** Null when the text is empty, partial, or not a positive taka amount. */
 export function parseAmount(value: string): number | null {
   const trimmed = value.trim();

@@ -41,6 +41,14 @@ export type NewExpense = {
   paymentMethod?: string | null;
 };
 
+function roundAmount(amount: number): number {
+  const rounded = Math.round(amount * 100) / 100;
+  if (!Number.isFinite(rounded) || rounded <= 0) {
+    throw new Error('Amount must be greater than zero.');
+  }
+  return rounded;
+}
+
 function blankToNull(value: string | null | undefined): string | null {
   if (value == null) return null;
   const trimmed = value.trim();
@@ -71,10 +79,7 @@ function toExpense(row: TransactionRow): Expense {
  * bike_id stays empty until the active bike lives in the bikes table.
  */
 export async function addExpense(input: NewExpense): Promise<Expense> {
-  const amount = Math.round(input.amount * 100) / 100;
-  if (!Number.isFinite(amount) || amount <= 0) {
-    throw new Error('Amount must be greater than zero.');
-  }
+  const amount = roundAmount(input.amount);
 
   const db = await getRideWiseDatabase();
   const category = await db.getFirstAsync<{ id: string }>(
@@ -157,4 +162,62 @@ export async function getExpense(id: string): Promise<Expense | null> {
     [id],
   );
   return row ? toExpense(row) : null;
+}
+
+export type ExpenseChanges = {
+  amount: number;
+  categoryId: string;
+  date: number;
+  note?: string | null;
+  paymentMethod?: string | null;
+};
+
+export async function updateExpense(id: string, changes: ExpenseChanges): Promise<Expense> {
+  const amount = roundAmount(changes.amount);
+  const db = await getRideWiseDatabase();
+  const current = await db.getFirstAsync<TransactionRow>(
+    `SELECT * FROM transactions WHERE id = ? AND deleted_at IS NULL`,
+    [id],
+  );
+  if (!current) {
+    throw new Error('This expense is no longer in your history.');
+  }
+
+  const category = await db.getFirstAsync<{ id: string }>(
+    `SELECT id FROM categories WHERE id = ? AND deleted_at IS NULL`,
+    [changes.categoryId],
+  );
+  if (!category) {
+    throw new Error('Choose a category before saving.');
+  }
+
+  const now = timestampNow();
+  const expense: Expense = {
+    id,
+    amount,
+    categoryId: changes.categoryId,
+    bikeId: current.bike_id,
+    date: changes.date,
+    note: blankToNull(changes.note),
+    paymentMethod: blankToNull(changes.paymentMethod),
+  };
+
+  await db.runAsync(
+    `UPDATE transactions
+     SET amount = ?, category_id = ?, date = ?, note = ?, payment_method = ?, updated_at = ?
+     WHERE id = ? AND deleted_at IS NULL`,
+    [expense.amount, expense.categoryId, expense.date, expense.note, expense.paymentMethod, now, id],
+  );
+
+  return expense;
+}
+
+/** Soft delete so a later restore can still see the row. */
+export async function deleteExpense(id: string): Promise<void> {
+  const db = await getRideWiseDatabase();
+  const now = timestampNow();
+  await db.runAsync(
+    `UPDATE transactions SET deleted_at = ?, updated_at = ? WHERE id = ? AND deleted_at IS NULL`,
+    [now, now, id],
+  );
 }

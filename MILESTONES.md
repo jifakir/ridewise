@@ -39,8 +39,8 @@ Default work is `mobile-app/` only. Do not touch `api/` or `landing/` until this
 | M5 | Repos + categories | Done |
 | M6 | Add Expense | Done |
 | M7 | Transactions list | Done |
-| M8 | Edit/delete expense | Next |
-| M9 | Bike profile | Pending |
+| M8 | Edit/delete expense | Done |
+| M9 | Bike profile | Next |
 | M10 | Add Fuel | Pending |
 | M11 | Mileage | Pending |
 | M12 | Live Home data | Pending |

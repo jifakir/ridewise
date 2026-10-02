@@ -21,6 +21,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { Category } from '@/src/repositories/categoryRepository';
 import { colors } from '@/src/theme/colors';
+import { iconName } from '@/src/utils/icons';
 
 const OPEN_MS = 320;
 const CLOSE_MS = 220;
@@ -29,13 +30,6 @@ const OPEN_EASE = Easing.out(Easing.cubic);
 const CLOSE_EASE = Easing.in(Easing.cubic);
 
 type CategoryTab = 'general' | 'bike';
-
-function iconName(icon: string | null): keyof typeof Ionicons.glyphMap {
-  if (icon && icon in Ionicons.glyphMap) {
-    return icon as keyof typeof Ionicons.glyphMap;
-  }
-  return 'pricetag-outline';
-}
 
 function CategoryList({
   categories,

@@ -35,6 +35,7 @@ function RootNavigator() {
         </Stack.Protected>
         <Stack.Protected guard={welcomeCompleted && hasBike}>
           <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="expense/[id]" />
         </Stack.Protected>
         <Stack.Screen name="+not-found" />
       </Stack>
