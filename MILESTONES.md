@@ -23,19 +23,19 @@ Default work is `mobile-app/` only. Do not touch `api/` or `landing/` until this
 
 | Field | Value |
 | --- | --- |
-| Milestone | M2 |
+| Milestone | — |
 | Owner | — |
 | Branch | — |
-| Notes | Claim M2 here before coding Welcome |
+| Notes | — |
 
 ## Status
 
 | Milestone | Focus | Status |
 | --- | --- | --- |
 | M1 | Project + Home UI | Done |
-| M2 | Welcome | Next |
-| M3 | Bike setup | Pending |
-| M4 | SQLite schema | Pending |
+| M2 | Welcome | Done |
+| M3 | Bike setup | Done |
+| M4 | SQLite schema | Next |
 | M5 | Repos + categories | Pending |
 | M6 | Add Expense | Pending |
 | M7 | Transactions list | Pending |
