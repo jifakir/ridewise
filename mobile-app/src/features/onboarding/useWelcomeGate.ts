@@ -20,7 +20,7 @@ type WelcomeGateValue = {
   bike: Bike | null;
   completeWelcome: () => Promise<void>;
   saveBike: (bike: BikeInput) => Promise<void>;
-  noteBike: (bike: Bike) => void;
+  noteBike: (bike: Bike | null) => void;
 };
 
 const WelcomeGateContext = createContext<WelcomeGateValue | null>(null);
@@ -67,7 +67,7 @@ export function WelcomeGateProvider({ children }: { children: ReactNode }) {
     setBike(saved);
   }, []);
 
-  const noteBike = useCallback((nextBike: Bike) => {
+  const noteBike = useCallback((nextBike: Bike | null) => {
     setBike(nextBike);
   }, []);
 

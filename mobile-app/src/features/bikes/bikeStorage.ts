@@ -34,3 +34,7 @@ export async function getActiveBike(): Promise<StoredBike | null> {
 export async function persistActiveBike(bike: StoredBike): Promise<void> {
   await AsyncStorage.setItem(ACTIVE_BIKE_KEY, JSON.stringify(bike));
 }
+
+export async function clearLegacyBike(): Promise<void> {
+  await AsyncStorage.removeItem(ACTIVE_BIKE_KEY);
+}
