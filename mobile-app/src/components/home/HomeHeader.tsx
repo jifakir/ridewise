@@ -1,8 +1,6 @@
 import { Text, View } from 'react-native';
 
-function monthLabel(date = new Date()) {
-  return date.toLocaleDateString('en-US', { month: 'long' });
-}
+import { monthName } from '@/src/utils/dates';
 
 export function HomeHeader() {
   return (
@@ -12,8 +10,9 @@ export function HomeHeader() {
         <Text className="mt-1 text-sm text-muted">Spend smart. Ride more.</Text>
       </View>
       <View className="rounded-full bg-card px-3 py-1.5">
-        <Text className="text-sm font-medium text-foreground">{monthLabel()}</Text>
+        <Text className="text-sm font-medium text-foreground">{monthName()}</Text>
       </View>
     </View>
   );
 }
+

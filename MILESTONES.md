@@ -44,8 +44,8 @@ Default work is `mobile-app/` only. Do not touch `api/` or `landing/` until this
 | M10 | Add Fuel | Done |
 | M11 | Mileage | Done |
 | M12 | Live Home data | Done |
-| M13 | Reports | Next |
-| M14 | Backup export | Pending |
+| M13 | Reports | Done |
+| M14 | Backup export | Next |
 | M15 | Restore import | Pending |
 | M16 | Polish | Pending |
 
