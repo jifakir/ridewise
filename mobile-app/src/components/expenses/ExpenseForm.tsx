@@ -258,7 +258,7 @@ export function ExpenseForm({
       ? 'From litres × price per litre.'
       : fuelMode
         ? 'Enter the total, or litres and a price per litre.'
-        : 'No amount yet';
+        : null;
   const helperClass = amountInvalid ? 'text-danger' : 'text-muted';
 
   return (
@@ -303,7 +303,7 @@ export function ExpenseForm({
                   className="min-h-[56px] w-0 flex-1 py-0 text-5xl font-bold text-primary"
                 />
               </View>
-              <Text className={`mt-2 text-sm ${helperClass}`}>{helper}</Text>
+              {helper ? <Text className={`mt-2 text-sm ${helperClass}`}>{helper}</Text> : null}
             </View>
 
             <Pressable
