@@ -34,6 +34,13 @@ export function dayLabel(input: Date | number, now = new Date()): string {
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+/** Local start of this month, and the local start of the next month. */
+export function monthBounds(now = new Date()): { start: number; end: number } {
+  const start = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  const end = new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime();
+  return { start, end };
+}
+
 export function shiftDays(date: Date, days: number): Date {
   const next = new Date(date.getFullYear(), date.getMonth(), date.getDate() + days, 12, 0, 0, 0);
   return next.getTime() > endOfToday().getTime() ? atLocalNoon(new Date()) : next;

@@ -24,6 +24,18 @@ export type ExpenseListItem = Expense & {
 export type ExpenseListQuery = {
   search?: string;
   type?: ExpenseTypeFilter;
+  /** Inclusive local timestamp. */
+  from?: number;
+  /** Exclusive local timestamp. */
+  to?: number;
+  limit?: number;
+};
+
+export type MonthlyTotals = {
+  total: number;
+  daily: number;
+  bike: number;
+  count: number;
 };
 
 type ExpenseListRow = TransactionRow & {
@@ -127,6 +139,9 @@ export async function listExpenses(query: ExpenseListQuery = {}): Promise<Expens
   const db = await getRideWiseDatabase();
   const type = query.type && query.type !== 'all' ? query.type : null;
   const search = likePattern(query.search);
+  const from = query.from ?? null;
+  const to = query.to ?? null;
+  const limit = query.limit ?? -1;
   const rows = await db.getAllAsync<ExpenseListRow>(
     `SELECT
        t.id, t.amount, t.category_id, t.bike_id, t.date, t.note, t.payment_method,
@@ -136,6 +151,8 @@ export async function listExpenses(query: ExpenseListQuery = {}): Promise<Expens
      JOIN categories c ON c.id = t.category_id
      WHERE t.deleted_at IS NULL
        AND (? IS NULL OR c.type = ?)
+       AND (? IS NULL OR t.date >= ?)
+       AND (? IS NULL OR t.date < ?)
        AND (
          ? IS NULL
          OR c.name LIKE ? ESCAPE '\\'
@@ -143,10 +160,39 @@ export async function listExpenses(query: ExpenseListQuery = {}): Promise<Expens
          OR IFNULL(t.payment_method, '') LIKE ? ESCAPE '\\'
          OR CAST(t.amount AS TEXT) LIKE ? ESCAPE '\\'
        )
-     ORDER BY t.date DESC, t.created_at DESC`,
-    [type, type, search, search, search, search, search],
+     ORDER BY t.date DESC, t.created_at DESC
+     LIMIT ?`,
+    [type, type, from, from, to, to, search, search, search, search, search, limit],
   );
   return rows.map(toListItem);
+}
+
+function roundTaka(amount: number): number {
+  return Math.round(amount * 100) / 100;
+}
+
+/** Spending in [start, end), split by Daily (general) and Bike categories. */
+export async function monthlyTotals(start: number, end: number): Promise<MonthlyTotals> {
+  const db = await getRideWiseDatabase();
+  const row = await db.getFirstAsync<{ total: number; daily: number; bike: number; count: number }>(
+    `SELECT
+       COALESCE(SUM(t.amount), 0) AS total,
+       COALESCE(SUM(CASE WHEN c.type = 'general' THEN t.amount ELSE 0 END), 0) AS daily,
+       COALESCE(SUM(CASE WHEN c.type = 'bike' THEN t.amount ELSE 0 END), 0) AS bike,
+       COUNT(t.id) AS count
+     FROM transactions t
+     JOIN categories c ON c.id = t.category_id
+     WHERE t.deleted_at IS NULL
+       AND t.date >= ?
+       AND t.date < ?`,
+    [start, end],
+  );
+  return {
+    total: roundTaka(row?.total ?? 0),
+    daily: roundTaka(row?.daily ?? 0),
+    bike: roundTaka(row?.bike ?? 0),
+    count: row?.count ?? 0,
+  };
 }
 
 export async function getExpense(id: string): Promise<Expense | null> {

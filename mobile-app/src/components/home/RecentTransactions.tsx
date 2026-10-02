@@ -1,8 +1,15 @@
 import { useRouter } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
-export function RecentTransactions() {
+import { ExpenseRow } from '@/src/components/expenses/ExpenseRow';
+import type { ExpenseListItem } from '@/src/repositories/expenseRepository';
+
+export function RecentTransactions({ items, unavailable = false }: { items: ExpenseListItem[]; unavailable?: boolean }) {
   const router = useRouter();
+  const title = unavailable ? 'Transactions unavailable' : 'No expenses yet';
+  const body = unavailable
+    ? 'Spending could not be loaded.'
+    : 'Add your first expense and it will show up here.';
 
   return (
     <View>
@@ -16,12 +23,18 @@ export function RecentTransactions() {
           <Text className="text-sm font-semibold text-primary">View All</Text>
         </Pressable>
       </View>
-      <View className="items-center rounded-3xl bg-card px-6 py-10">
-        <Text className="text-base font-semibold text-foreground">No expenses yet</Text>
-        <Text className="mt-1 text-center text-sm text-muted">
-          Add your first expense and it will show up here.
-        </Text>
-      </View>
+      {items.length === 0 ? (
+        <View className="items-center rounded-3xl bg-card px-6 py-10">
+          <Text className="text-base font-semibold text-foreground">{title}</Text>
+          <Text className="mt-1 text-center text-sm text-muted">{body}</Text>
+        </View>
+      ) : (
+        <View className="overflow-hidden rounded-3xl bg-card">
+          {items.map((item, index) => (
+            <ExpenseRow key={item.id} item={item} hairline={index > 0} />
+          ))}
+        </View>
+      )}
     </View>
   );
 }

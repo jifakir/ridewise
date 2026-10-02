@@ -1,11 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
 
+import { MileageLine } from '@/src/components/fuel/MileageLine';
 import { formatOdo } from '@/src/features/bikes/odo';
+import type { Mileage } from '@/src/features/fuel/mileage';
 import { useWelcomeGate } from '@/src/features/onboarding/useWelcomeGate';
 import { colors } from '@/src/theme/colors';
 
-export function BikeCard() {
+export function BikeCard({ mileage }: { mileage: Mileage | null }) {
   const { bike } = useWelcomeGate();
 
   if (!bike) {
@@ -31,6 +33,11 @@ export function BikeCard() {
         {bike.brand} {bike.model}
       </Text>
       <Text className="mt-2 text-sm text-muted">ODO {formatOdo(bike.currentOdo)}</Text>
+      {mileage?.kind === 'ready' ? (
+        <View className="mt-2">
+          <MileageLine mileage={mileage} />
+        </View>
+      ) : null}
     </View>
   );
 }

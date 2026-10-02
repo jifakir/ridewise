@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Animated, {
@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ExpenseRow } from '@/src/components/expenses/ExpenseRow';
 import {
   listExpenses,
   type ExpenseListItem,
@@ -17,8 +18,6 @@ import {
 } from '@/src/repositories/expenseRepository';
 import { colors } from '@/src/theme/colors';
 import { dayKey, dayLabel } from '@/src/utils/dates';
-import { iconName } from '@/src/utils/icons';
-import { formatBdt } from '@/src/utils/money';
 
 const FILTERS: { id: ExpenseTypeFilter; label: string }[] = [
   { id: 'all', label: 'All' },
@@ -28,11 +27,6 @@ const FILTERS: { id: ExpenseTypeFilter; label: string }[] = [
 
 const TAB_MS = 240;
 const TAB_EASE = Easing.out(Easing.cubic);
-
-function detailLine(item: ExpenseListItem): string | null {
-  const parts = [item.note, item.paymentMethod].filter((part): part is string => Boolean(part));
-  return parts.length > 0 ? parts.join(' · ') : null;
-}
 
 function groupByDay(items: ExpenseListItem[]): { key: string; label: string; items: ExpenseListItem[] }[] {
   const groups: { key: string; label: string; items: ExpenseListItem[] }[] = [];
@@ -136,7 +130,6 @@ function HistoryFilter({
 }
 
 export function TransactionsScreen() {
-  const router = useRouter();
   const [search, setSearch] = useState('');
   const [type, setType] = useState<ExpenseTypeFilter>('all');
   const [items, setItems] = useState<ExpenseListItem[] | null>(null);
@@ -226,34 +219,9 @@ export function TransactionsScreen() {
             <View key={group.key}>
               <Text className="mb-3 text-lg font-bold text-foreground">{group.label}</Text>
               <View className="overflow-hidden rounded-3xl bg-card">
-                {group.items.map((item, index) => {
-                  const detail = detailLine(item);
-                  return (
-                    <Pressable
-                      key={item.id}
-                      accessibilityRole="button"
-                      accessibilityLabel={`${item.categoryName}, ${formatBdt(item.amount)}`}
-                      onPress={() => router.push(`/expense/${item.id}`)}
-                      className={`flex-row items-center px-4 py-3 active:opacity-70 ${
-                        index > 0 ? 'border-t border-black/5' : ''
-                      }`}>
-                      <View className="h-10 w-10 items-center justify-center rounded-xl bg-primary/15">
-                        <Ionicons name={iconName(item.categoryIcon)} size={20} color={colors.primary} />
-                      </View>
-                      <View className="ml-3 min-w-0 flex-1">
-                        <Text numberOfLines={1} className="text-[16px] font-medium text-foreground">
-                          {item.categoryName}
-                        </Text>
-                        {detail ? (
-                          <Text numberOfLines={1} className="mt-0.5 text-sm text-muted">
-                            {detail}
-                          </Text>
-                        ) : null}
-                      </View>
-                      <Text className="ml-3 text-base font-bold text-primary">{formatBdt(item.amount)}</Text>
-                    </Pressable>
-                  );
-                })}
+                {group.items.map((item, index) => (
+                  <ExpenseRow key={item.id} item={item} hairline={index > 0} />
+                ))}
               </View>
             </View>
           ))}
