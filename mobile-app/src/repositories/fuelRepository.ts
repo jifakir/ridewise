@@ -2,6 +2,7 @@ import { FUEL_CATEGORY_ID } from '@/src/database/seed';
 import { getRideWiseDatabase } from '@/src/database/sqlite';
 import type { FuelCapture } from '@/src/features/fuel/calculate';
 import { resolveFuel } from '@/src/features/fuel/calculate';
+import { mileageFromFill, type Mileage } from '@/src/features/fuel/mileage';
 
 import { getActiveBike, type Bike } from './bikeRepository';
 import { blankToNull, createId, timestampNow } from './support';
@@ -12,6 +13,52 @@ export type NewFuelLog = {
   note?: string | null;
   paymentMethod?: string | null;
 } & FuelCapture;
+
+const PRIOR_FUEL_ODO = `
+SELECT f.odo AS odo
+FROM fuel_logs f
+JOIN transactions t ON t.id = f.transaction_id
+WHERE f.bike_id = ?
+  AND f.deleted_at IS NULL
+  AND t.deleted_at IS NULL
+  AND f.odo < ?
+ORDER BY f.odo DESC
+LIMIT 1
+`;
+
+/** Latest saved fuel reading below this ODO. Null when this is the first fill. */
+export async function priorFuelOdo(beforeOdo: number): Promise<number | null> {
+  const bike = await getActiveBike();
+  if (!bike) return null;
+  const db = await getRideWiseDatabase();
+  const row = await db.getFirstAsync<{ odo: number }>(PRIOR_FUEL_ODO, [bike.id, beforeOdo]);
+  return row?.odo ?? null;
+}
+
+/** Mileage of the latest fill. Insufficient until a prior fill has a lower ODO and this fill has litres. */
+export async function latestMileage(): Promise<Mileage> {
+  const bike = await getActiveBike();
+  if (!bike) return { kind: 'insufficient' };
+  const db = await getRideWiseDatabase();
+  const latest = await db.getFirstAsync<{ odo: number; litres: number | null }>(
+    `SELECT f.odo AS odo, f.litres AS litres
+     FROM fuel_logs f
+     JOIN transactions t ON t.id = f.transaction_id
+     WHERE f.bike_id = ?
+       AND f.deleted_at IS NULL
+       AND t.deleted_at IS NULL
+     ORDER BY f.odo DESC, t.date DESC
+     LIMIT 1`,
+    [bike.id],
+  );
+  if (!latest) return { kind: 'insufficient' };
+  const previous = await db.getFirstAsync<{ odo: number }>(PRIOR_FUEL_ODO, [bike.id, latest.odo]);
+  return mileageFromFill({
+    previousOdo: previous?.odo ?? null,
+    odo: latest.odo,
+    litres: latest.litres,
+  });
+}
 
 function requireAmount(amount: number): number {
   const rounded = Math.round(amount * 100) / 100;

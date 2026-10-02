@@ -1,14 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { NameField } from '@/src/components/bike/NameField';
 import { OdoField } from '@/src/components/bike/OdoField';
+import { MileageLine } from '@/src/components/fuel/MileageLine';
 import { BackButton } from '@/src/components/navigation/BackButton';
 import { formatOdo, parseOdo } from '@/src/features/bikes/odo';
+import type { Mileage } from '@/src/features/fuel/mileage';
 import { useWelcomeGate } from '@/src/features/onboarding/useWelcomeGate';
+import { latestMileage } from '@/src/repositories/fuelRepository';
 import { colors } from '@/src/theme/colors';
 
 export function BikeProfileScreen() {
@@ -19,6 +22,23 @@ export function BikeProfileScreen() {
   const [odo, setOdo] = useState(bike ? String(bike.currentOdo) : '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mileage, setMileage] = useState<Mileage | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      latestMileage()
+        .then((result) => {
+          if (!cancelled) setMileage(result);
+        })
+        .catch(() => {
+          if (!cancelled) setMileage(null);
+        });
+      return () => {
+        cancelled = true;
+      };
+    }, []),
+  );
 
   const currentOdo = parseOdo(odo);
   const canSave = brand.trim().length > 0 && model.trim().length > 0 && currentOdo !== null && !saving;
@@ -56,6 +76,12 @@ export function BikeProfileScreen() {
         </View>
 
         <View className="gap-4">
+          {mileage ? (
+            <View className="rounded-3xl bg-card p-5">
+              <MileageLine mileage={mileage} prominent />
+            </View>
+          ) : null}
+
           <NameField label="Brand" value={brand} onChangeText={setBrand} placeholder="Brand" />
           <NameField label="Model" value={model} onChangeText={setModel} placeholder="Model" />
 

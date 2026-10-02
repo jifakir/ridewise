@@ -96,6 +96,8 @@ export type FuelEntryState = {
   notice: FuelNotice | null;
   needsLowerConfirm: boolean;
   capture: FuelCapture | null;
+  /** Litres that will be stored, when amount, litres, and price agree. */
+  litresForMileage: number | null;
 };
 
 export function fuelEntryState(input: {
@@ -111,6 +113,7 @@ export function fuelEntryState(input: {
     notice: null,
     needsLowerConfirm: false,
     capture: null,
+    litresForMileage: null,
   };
   if (input.amount == null) return blocked;
 
@@ -186,5 +189,6 @@ export function fuelEntryState(input: {
       pricePerLitre: parsedPrice,
       confirmLowerOdo: tooLow,
     },
+    litresForMileage: resolved.mismatch ? null : resolved.litres,
   };
 }

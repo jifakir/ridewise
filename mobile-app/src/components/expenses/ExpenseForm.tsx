@@ -20,10 +20,13 @@ import { CategoryPickerModal } from '@/src/components/expenses/CategoryPickerMod
 import { FuelFields } from '@/src/components/fuel/FuelFields';
 import { BackButton } from '@/src/components/navigation/BackButton';
 import { FUEL_CATEGORY_ID } from '@/src/database/seed';
+import { parseOdo } from '@/src/features/bikes/odo';
 import { PAYMENT_METHODS, type PaymentMethod } from '@/src/features/expenses/paymentMethods';
 import { fuelEntryState, sanitizeVolumeInput, type FuelCapture } from '@/src/features/fuel/calculate';
+import { formatMileage, mileageFromFill } from '@/src/features/fuel/mileage';
 import { listCategories, type Category } from '@/src/repositories/categoryRepository';
 import type { ExpenseChanges } from '@/src/repositories/expenseRepository';
+import { priorFuelOdo } from '@/src/repositories/fuelRepository';
 import { colors } from '@/src/theme/colors';
 import { atLocalNoon, dayLabel, endOfToday, isSameDay, shiftDays } from '@/src/utils/dates';
 import { iconName } from '@/src/utils/icons';
@@ -98,6 +101,7 @@ export function ExpenseForm({
   const [pricePerLitre, setPricePerLitre] = useState('');
   const [odo, setOdo] = useState('');
   const [allowLowerOdo, setAllowLowerOdo] = useState(false);
+  const [priorOdo, setPriorOdo] = useState<{ reading: number; previous: number | null } | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savedLabel, setSavedLabel] = useState<string | null>(null);
@@ -130,6 +134,27 @@ export function ExpenseForm({
       })
     : null;
   const canSave = parsedAmount !== null && selected !== null && !saving && (fuel === null || fuel.canSave);
+  const reading = fuelMode ? parseOdo(odo) : null;
+  const previousOdo = priorOdo && reading !== null && priorOdo.reading === reading ? priorOdo.previous : undefined;
+  const mileage =
+    fuel?.canSave && fuel.capture && fuel.litresForMileage != null && previousOdo !== undefined
+      ? mileageFromFill({ previousOdo, odo: fuel.capture.odo, litres: fuel.litresForMileage })
+      : null;
+
+  useEffect(() => {
+    if (!fuelMode || reading === null) return;
+    let cancelled = false;
+    priorFuelOdo(reading)
+      .then((previous) => {
+        if (!cancelled) setPriorOdo({ reading, previous });
+      })
+      .catch(() => {
+        if (!cancelled) setPriorOdo({ reading, previous: null });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [fuelMode, reading]);
   const amountInvalid = amount.length > 0 && !amount.endsWith('.') && parsedAmount === null;
   const canPickCategory = (categories?.length ?? 0) > 0;
   const categoryLabel = selected
@@ -174,7 +199,8 @@ export function ExpenseForm({
         leaving = true;
         return;
       }
-      setSavedLabel(`Saved ${formatBdt(parsedAmount)} · ${selected.name}`);
+      const mileageLabel = mileage?.kind === 'ready' ? ` · ${formatMileage(mileage.kmPerLitre)}` : '';
+      setSavedLabel(`Saved ${formatBdt(parsedAmount)} · ${selected.name}${mileageLabel}`);
       setAmount('');
       setCategoryId(null);
       setLitres('');
@@ -315,6 +341,7 @@ export function ExpenseForm({
                 price={pricePerLitre}
                 odo={odo}
                 notice={fuel.notice}
+                mileage={mileage}
                 needsLowerConfirm={fuel.needsLowerConfirm}
                 onLitresChange={(text) => {
                   setLitres(sanitizeVolumeInput(text));
