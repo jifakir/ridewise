@@ -1,5 +1,5 @@
-import { PlaceholderScreen } from '@/src/components/PlaceholderScreen';
+import { AddExpenseScreen } from '@/src/components/expenses/AddExpenseScreen';
 
 export default function AddScreen() {
-  return <PlaceholderScreen title="Add Expense" nextMilestone="fast expense entry" />;
+  return <AddExpenseScreen />;
 }
