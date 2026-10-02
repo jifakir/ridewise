@@ -35,19 +35,19 @@ Default work is `mobile-app/` only. Do not touch `api/` or `landing/` until this
 | M1 | Project + Home UI | Done |
 | M2 | Welcome | Done |
 | M3 | Bike setup | Done |
-| M4 | SQLite schema | Next |
-| M5 | Repos + categories | Pending |
-| M6 | Add Expense | Pending |
-| M7 | Transactions list | Pending |
-| M8 | Edit/delete expense | Pending |
-| M9 | Bike profile | Pending |
-| M10 | Add Fuel | Pending |
-| M11 | Mileage | Pending |
-| M12 | Live Home data | Pending |
-| M13 | Reports | Pending |
-| M14 | Backup export | Pending |
-| M15 | Restore import | Pending |
-| M16 | Polish | Pending |
+| M4 | SQLite schema | Done |
+| M5 | Repos + categories | Done |
+| M6 | Add Expense | Done |
+| M7 | Transactions list | Done |
+| M8 | Edit/delete expense | Done |
+| M9 | Bike profile | Done |
+| M10 | Add Fuel | Done |
+| M11 | Mileage | Done |
+| M12 | Live Home data | Done |
+| M13 | Reports | Done |
+| M14 | Backup export | Done |
+| M15 | Restore import | Done |
+| M16 | Polish | Next |
 
 ## Milestone map
 

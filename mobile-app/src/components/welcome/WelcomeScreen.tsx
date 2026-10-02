@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, type ComponentType } from 'react';
 import {
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -8,27 +8,37 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
+import type { SvgProps } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { MotorbikeIllustration } from '@/src/components/welcome/illustrations/MotorbikeIllustration';
-import { OfflineIllustration } from '@/src/components/welcome/illustrations/OfflineIllustration';
-import { SpendIllustration } from '@/src/components/welcome/illustrations/SpendIllustration';
+import PrivateArt from '@/assets/images/undraw_private-data_934y.svg';
+import TravelingArt from '@/assets/images/undraw_traveling_c18z.svg';
+import WalletArt from '@/assets/images/undraw_wallet_diag.svg';
+import { WelcomeArt } from '@/src/components/welcome/illustrations/WelcomeArt';
 
-const SLIDES = [
+const SLIDES: {
+  title: string;
+  body: string;
+  Art: ComponentType<SvgProps>;
+  aspect: number;
+}[] = [
   {
     title: 'Your Money',
-    body: 'Log food, bills, and daily spend.',
-    Illustration: SpendIllustration,
+    body: 'Food, bills, and daily spend, together in one place.',
+    Art: WalletArt,
+    aspect: 800.272 / 594.547,
   },
   {
-    title: 'Motorbike',
-    body: 'Fuel, service, and riding costs.',
-    Illustration: MotorbikeIllustration,
+    title: 'My Bike',
+    body: 'Fuel, service, and the cost of riding.',
+    Art: TravelingArt,
+    aspect: 610 / 435.02908,
   },
   {
     title: 'On this phone',
-    body: 'Offline. No account. Data stays here.',
-    Illustration: OfflineIllustration,
+    body: 'No account. It works offline, and your data stays here.',
+    Art: PrivateArt,
+    aspect: 854.515 / 800,
   },
 ];
 
@@ -60,6 +70,23 @@ export function WelcomeScreen({ busy = false, onGetStarted }: WelcomeScreenProps
 
   return (
     <SafeAreaView className="flex-1 bg-canvas" edges={['top', 'bottom']}>
+      <View className="h-11 flex-row items-center justify-between px-5">
+        <Text className="text-base font-bold text-foreground">RideWise</Text>
+        {lastSlide ? (
+          <View className="w-10" />
+        ) : (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Skip"
+            accessibilityState={{ disabled: busy }}
+            disabled={busy}
+            onPress={onGetStarted}
+            className="py-2 active:opacity-70">
+            <Text className="text-sm font-semibold text-muted">Skip</Text>
+          </Pressable>
+        )}
+      </View>
+
       <ScrollView
         ref={scrollRef}
         horizontal
@@ -67,11 +94,12 @@ export function WelcomeScreen({ busy = false, onGetStarted }: WelcomeScreenProps
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={handleScrollEnd}
         scrollEventThrottle={16}
-        className="flex-1">
-        {SLIDES.map(({ title, body, Illustration }) => (
-          <View key={title} style={{ width }} className="flex-1 justify-center px-5">
-            <Illustration />
-            <Text className="mt-6 text-center text-3xl font-bold text-foreground">{title}</Text>
+        className="flex-1"
+        contentContainerClassName="grow">
+        {SLIDES.map(({ title, body, Art, aspect }) => (
+          <View key={title} style={{ width }} className="grow items-center justify-center px-5">
+            <WelcomeArt Art={Art} aspect={aspect} />
+            <Text className="mt-8 text-center text-3xl font-bold text-foreground">{title}</Text>
             <Text className="mt-3 text-center text-base leading-6 text-muted">{body}</Text>
           </View>
         ))}

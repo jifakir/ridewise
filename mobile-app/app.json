@@ -26,6 +26,7 @@
     },
     "plugins": [
       "expo-router",
+      "expo-sqlite",
       [
         "expo-splash-screen",
         {
@@ -33,7 +34,9 @@
           "resizeMode": "contain",
           "backgroundColor": "#F6F6F4"
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker",
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true

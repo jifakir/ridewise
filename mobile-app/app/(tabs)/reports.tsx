@@ -1,5 +1,5 @@
-import { PlaceholderScreen } from '@/src/components/PlaceholderScreen';
+import { ReportsScreen } from '@/src/components/reports/ReportsScreen';
 
-export default function ReportsScreen() {
-  return <PlaceholderScreen title="Reports" nextMilestone="monthly and category summaries" />;
+export default function ReportsRoute() {
+  return <ReportsScreen />;
 }
