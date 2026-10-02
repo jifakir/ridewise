@@ -30,7 +30,7 @@ import { priorFuelOdo } from '@/src/repositories/fuelRepository';
 import { colors } from '@/src/theme/colors';
 import { atLocalNoon, dayLabel, endOfToday, isSameDay, shiftDays } from '@/src/utils/dates';
 import { iconName } from '@/src/utils/icons';
-import { formatBdt, parseAmount, sanitizeAmountInput } from '@/src/utils/money';
+import { amountInputValue, formatBdt, parseAmount, sanitizeAmountInput } from '@/src/utils/money';
 
 export type ExpenseDraft = ExpenseChanges & {
   fuel?: FuelCapture;
@@ -133,7 +133,7 @@ export function ExpenseForm({
         allowLowerOdo,
       })
     : null;
-  const canSave = parsedAmount !== null && selected !== null && !saving && (fuel === null || fuel.canSave);
+  const canSave = (fuel?.amount ?? parsedAmount) !== null && selected !== null && !saving && (fuel === null || fuel.canSave);
   const reading = fuelMode ? parseOdo(odo) : null;
   const previousOdo = priorOdo && reading !== null && priorOdo.reading === reading ? priorOdo.previous : undefined;
   const mileage =
@@ -155,6 +155,12 @@ export function ExpenseForm({
       cancelled = true;
     };
   }, [fuelMode, reading]);
+
+  useEffect(() => {
+    if (!fuel?.amountFromFigures || fuel.amount == null) return;
+    const next = amountInputValue(fuel.amount);
+    setAmount((current) => (current === next ? current : next));
+  }, [fuel?.amountFromFigures, fuel?.amount]);
   const amountInvalid = amount.length > 0 && !amount.endsWith('.') && parsedAmount === null;
   const canPickCategory = (categories?.length ?? 0) > 0;
   const categoryLabel = selected
@@ -180,12 +186,13 @@ export function ExpenseForm({
   }
 
   async function handleSave() {
-    if (savingRef.current || !canSave || parsedAmount === null || selected === null) return;
+    const saveAmount = fuel?.amount ?? parsedAmount;
+    if (savingRef.current || !canSave || saveAmount === null || selected === null) return;
     savingRef.current = true;
     setSaving(true);
     setSaveError(null);
     const draft: ExpenseDraft = {
-      amount: parsedAmount,
+      amount: saveAmount,
       categoryId: selected.id,
       date: date.getTime(),
       note,
@@ -200,7 +207,7 @@ export function ExpenseForm({
         return;
       }
       const mileageLabel = mileage?.kind === 'ready' ? ` · ${formatMileage(mileage.kmPerLitre)}` : '';
-      setSavedLabel(`Saved ${formatBdt(parsedAmount)} · ${selected.name}${mileageLabel}`);
+      setSavedLabel(`Saved ${formatBdt(saveAmount)} · ${selected.name}${mileageLabel}`);
       setAmount('');
       setCategoryId(null);
       setLitres('');
@@ -258,7 +265,11 @@ export function ExpenseForm({
       ? saveError
       : savedLabel
         ? savedLabel
-        : 'No amount yet';
+        : fuel?.amountFromFigures
+          ? 'From litres × price per litre.'
+          : fuelMode
+            ? 'Enter the total, or litres and a price per litre.'
+            : 'No amount yet';
   const helperClass = amountInvalid || saveError ? 'text-danger' : savedLabel ? 'text-success' : 'text-muted';
 
   return (

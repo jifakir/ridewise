@@ -96,8 +96,11 @@ export type FuelEntryState = {
   notice: FuelNotice | null;
   needsLowerConfirm: boolean;
   capture: FuelCapture | null;
-  /** Litres that will be stored, when amount, litres, and price agree. */
+  /** Litres that will be stored, when the figures agree. */
   litresForMileage: number | null;
+  /** Taka that will be saved. From the amount field, or from litres × price. */
+  amount: number | null;
+  amountFromFigures: boolean;
 };
 
 export function fuelEntryState(input: {
@@ -114,9 +117,9 @@ export function fuelEntryState(input: {
     needsLowerConfirm: false,
     capture: null,
     litresForMileage: null,
+    amount: null,
+    amountFromFigures: false,
   };
-  if (input.amount == null) return blocked;
-
   if (input.activeOdo == null) {
     return { ...blocked, notice: { tone: 'danger', text: 'Add a bike before logging fuel.' } };
   }
@@ -137,8 +140,21 @@ export function fuelEntryState(input: {
   if (litresPartial || pricePartial) {
     return { ...blocked, notice: { tone: 'muted', text: 'Finish the number.' } };
   }
-  if (parsedLitres === null && parsedPrice === null) {
-    return { ...blocked, notice: { tone: 'muted', text: 'Add litres or a price per litre.' } };
+
+  const amountFromFigures = parsedLitres != null && parsedPrice != null;
+  const derived = amountFromFigures ? roundMoney(parsedLitres * parsedPrice) : null;
+  const amount = derived ?? input.amount;
+  if (amount == null) {
+    return {
+      ...blocked,
+      notice: {
+        tone: 'muted',
+        text:
+          parsedLitres == null && parsedPrice == null
+            ? 'Add the total, or both litres and a price per litre.'
+            : 'Add the total, or the other figure.',
+      },
+    };
   }
 
   const odo = parseOdo(input.odoText);
@@ -156,7 +172,7 @@ export function fuelEntryState(input: {
   }
 
   const resolved = resolveFuel({
-    amount: input.amount,
+    amount,
     litres: parsedLitres,
     pricePerLitre: parsedPrice,
   });
@@ -167,7 +183,7 @@ export function fuelEntryState(input: {
   }
 
   let notice: FuelNotice | null = null;
-  if (resolved.mismatch) {
+  if (!amountFromFigures && resolved.mismatch) {
     notice = { tone: 'warning', text: "Amount, litres, and price per litre don't match." };
   } else if (resolved.abnormal) {
     notice = { tone: 'warning', text: resolved.abnormal };
@@ -189,6 +205,8 @@ export function fuelEntryState(input: {
       pricePerLitre: parsedPrice,
       confirmLowerOdo: tooLow,
     },
-    litresForMileage: resolved.mismatch ? null : resolved.litres,
+    litresForMileage: amountFromFigures || !resolved.mismatch ? resolved.litres : null,
+    amount,
+    amountFromFigures,
   };
 }
