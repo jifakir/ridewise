@@ -13,23 +13,23 @@ import { shareBackup } from '@/src/features/backup/shareBackup';
 import { useWelcomeGate } from '@/src/features/onboarding/useWelcomeGate';
 import { exportBackup, restoreBackup, type RestoreMode } from '@/src/repositories/backupRepository';
 import { colors } from '@/src/theme/colors';
+import { showToast } from '@/src/utils/toast';
 
 export function MoreScreen() {
   const router = useRouter();
   const { bike, noteBike } = useWelcomeGate();
   const [action, setAction] = useState<'export' | 'restore' | null>(null);
-  const [notice, setNotice] = useState<{ tone: 'danger' | 'success'; text: string } | null>(null);
   const busy = action !== null;
 
   async function handleExport() {
     if (busy) return;
     setAction('export');
-    setNotice(null);
     try {
       const backup = await exportBackup();
       await shareBackup(serializeBackup(backup), backupFileName(backup.exportedAt));
+      showToast('Backup ready');
     } catch {
-      setNotice({ tone: 'danger', text: 'Could not export the backup. Try again.' });
+      showToast('Could not export the backup. Try again.', 'long');
     } finally {
       setAction(null);
     }
@@ -38,13 +38,12 @@ export function MoreScreen() {
   async function handleRestore() {
     if (busy) return;
     setAction('restore');
-    setNotice(null);
     try {
       const text = await pickBackupText();
       if (!text) return;
       const parsed = parseBackup(text);
       if (!parsed.ok) {
-        setNotice({ tone: 'danger', text: parsed.message });
+        showToast(parsed.message, 'long');
         return;
       }
       const backup = parsed.backup;
@@ -59,7 +58,7 @@ export function MoreScreen() {
         ],
       );
     } catch {
-      setNotice({ tone: 'danger', text: 'Could not open that file. Try again.' });
+      showToast('Could not open that file. Try again.', 'long');
     } finally {
       setAction(null);
     }
@@ -67,19 +66,18 @@ export function MoreScreen() {
 
   async function applyRestore(backup: RideWiseBackup, mode: RestoreMode) {
     setAction('restore');
-    setNotice(null);
     let leaving = false;
     try {
       const active = await restoreBackup(backup, mode);
+      showToast(mode === 'replace' ? 'Backup replaced' : 'Backup merged');
       if (!active) {
         leaving = true;
         noteBike(null);
         return;
       }
-      setNotice({ tone: 'success', text: 'Backup restored.' });
       noteBike(active);
     } catch {
-      setNotice({ tone: 'danger', text: 'Could not restore this backup. Try again.' });
+      showToast('Could not restore this backup. Try again.', 'long');
     } finally {
       if (!leaving) setAction(null);
     }
@@ -160,10 +158,6 @@ export function MoreScreen() {
             </View>
             <Text className="text-sm font-semibold text-primary">{action === 'restore' ? 'Restoring…' : 'Restore'}</Text>
           </Pressable>
-
-          {notice ? (
-            <Text className={`text-sm ${notice.tone === 'danger' ? 'text-danger' : 'text-success'}`}>{notice.text}</Text>
-          ) : null}
         </View>
       </ScrollView>
     </SafeAreaView>

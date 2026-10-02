@@ -31,6 +31,7 @@ import { colors } from '@/src/theme/colors';
 import { atLocalNoon, dayLabel, endOfToday, isSameDay, shiftDays } from '@/src/utils/dates';
 import { iconName } from '@/src/utils/icons';
 import { amountInputValue, formatBdt, parseAmount, sanitizeAmountInput } from '@/src/utils/money';
+import { showToast } from '@/src/utils/toast';
 
 export type ExpenseDraft = ExpenseChanges & {
   fuel?: FuelCapture;
@@ -103,8 +104,6 @@ export function ExpenseForm({
   const [allowLowerOdo, setAllowLowerOdo] = useState(false);
   const [priorOdo, setPriorOdo] = useState<{ reading: number; previous: number | null } | null>(null);
   const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [savedLabel, setSavedLabel] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -173,16 +172,10 @@ export function ExpenseForm({
           ? 'No categories yet'
           : 'Choose a category';
 
-  function clearSaved() {
-    setSavedLabel(null);
-    setSaveError(null);
-  }
-
   function handleDateChange(event: DateTimePickerEvent, selectedDate?: Date) {
     if (Platform.OS === 'android') setPickingDate(false);
     if (event.type !== 'set' || !selectedDate) return;
     setDate(atLocalNoon(selectedDate));
-    clearSaved();
   }
 
   async function handleSave() {
@@ -190,7 +183,6 @@ export function ExpenseForm({
     if (savingRef.current || !canSave || saveAmount === null || selected === null) return;
     savingRef.current = true;
     setSaving(true);
-    setSaveError(null);
     const draft: ExpenseDraft = {
       amount: saveAmount,
       categoryId: selected.id,
@@ -204,10 +196,11 @@ export function ExpenseForm({
       await onSubmit(draft);
       if (!resetOnSuccess) {
         leaving = true;
+        showToast('Saved changes');
         return;
       }
       const mileageLabel = mileage?.kind === 'ready' ? ` · ${formatMileage(mileage.kmPerLitre)}` : '';
-      setSavedLabel(`Saved ${formatBdt(saveAmount)} · ${selected.name}${mileageLabel}`);
+      showToast(`Saved ${formatBdt(saveAmount)} · ${selected.name}${mileageLabel}`);
       setAmount('');
       setCategoryId(null);
       setLitres('');
@@ -222,7 +215,7 @@ export function ExpenseForm({
       Keyboard.dismiss();
       scrollRef.current?.scrollTo({ y: 0, animated: true });
     } catch {
-      setSaveError('Could not save this expense. Try again.');
+      showToast('Could not save this expense. Try again.', 'long');
     } finally {
       if (!leaving) {
         savingRef.current = false;
@@ -249,11 +242,11 @@ export function ExpenseForm({
     if (!onDelete || savingRef.current) return;
     savingRef.current = true;
     setSaving(true);
-    setSaveError(null);
     try {
       await onDelete();
+      showToast('Expense deleted');
     } catch {
-      setSaveError('Could not delete this expense. Try again.');
+      showToast('Could not delete this expense. Try again.', 'long');
       savingRef.current = false;
       setSaving(false);
     }
@@ -261,16 +254,12 @@ export function ExpenseForm({
 
   const helper = amountInvalid
     ? 'Enter an amount greater than zero.'
-    : saveError
-      ? saveError
-      : savedLabel
-        ? savedLabel
-        : fuel?.amountFromFigures
-          ? 'From litres × price per litre.'
-          : fuelMode
-            ? 'Enter the total, or litres and a price per litre.'
-            : 'No amount yet';
-  const helperClass = amountInvalid || saveError ? 'text-danger' : savedLabel ? 'text-success' : 'text-muted';
+    : fuel?.amountFromFigures
+      ? 'From litres × price per litre.'
+      : fuelMode
+        ? 'Enter the total, or litres and a price per litre.'
+        : 'No amount yet';
+  const helperClass = amountInvalid ? 'text-danger' : 'text-muted';
 
   return (
     <SafeAreaView className="flex-1 bg-canvas" edges={edges}>
@@ -305,10 +294,7 @@ export function ExpenseForm({
                 <Text className="mb-2 mr-1 text-3xl font-bold text-primary">৳</Text>
                 <TextInput
                   value={amount}
-                  onChangeText={(text) => {
-                    setAmount(sanitizeAmountInput(text));
-                    clearSaved();
-                  }}
+                  onChangeText={(text) => setAmount(sanitizeAmountInput(text))}
                   placeholder="0"
                   placeholderTextColor={colors.muted}
                   keyboardType="decimal-pad"
@@ -354,23 +340,13 @@ export function ExpenseForm({
                 notice={fuel.notice}
                 mileage={mileage}
                 needsLowerConfirm={fuel.needsLowerConfirm}
-                onLitresChange={(text) => {
-                  setLitres(sanitizeVolumeInput(text));
-                  clearSaved();
-                }}
-                onPriceChange={(text) => {
-                  setPricePerLitre(sanitizeAmountInput(text));
-                  clearSaved();
-                }}
+                onLitresChange={(text) => setLitres(sanitizeVolumeInput(text))}
+                onPriceChange={(text) => setPricePerLitre(sanitizeAmountInput(text))}
                 onOdoChange={(text) => {
                   setOdo(text);
                   setAllowLowerOdo(false);
-                  clearSaved();
                 }}
-                onAllowLowerOdo={() => {
-                  setAllowLowerOdo(true);
-                  clearSaved();
-                }}
+                onAllowLowerOdo={() => setAllowLowerOdo(true)}
               />
             ) : null}
 
@@ -397,10 +373,7 @@ export function ExpenseForm({
                     <Text className="text-sm text-muted">Note</Text>
                     <TextInput
                       value={note}
-                      onChangeText={(text) => {
-                        setNote(text);
-                        clearSaved();
-                      }}
+                      onChangeText={setNote}
                       placeholder="What was this for?"
                       placeholderTextColor={colors.muted}
                       accessibilityLabel="Note"
@@ -420,10 +393,7 @@ export function ExpenseForm({
                             accessibilityRole="button"
                             accessibilityLabel={method}
                             accessibilityState={{ selected: selectedMethod }}
-                            onPress={() => {
-                              setPaymentMethod(selectedMethod ? null : method);
-                              clearSaved();
-                            }}
+                            onPress={() => setPaymentMethod(selectedMethod ? null : method)}
                             className={`flex-row items-center px-4 py-3 active:opacity-70 ${
                               index > 0 ? 'border-t border-black/5' : ''
                             }`}>
@@ -462,10 +432,7 @@ export function ExpenseForm({
                       <Pressable
                         accessibilityRole="button"
                         accessibilityLabel="Earlier date"
-                        onPress={() => {
-                          setDate((current) => shiftDays(current, -1));
-                          clearSaved();
-                        }}
+                        onPress={() => setDate((current) => shiftDays(current, -1))}
                         className="h-10 w-10 items-center justify-center rounded-xl bg-primary/15 active:opacity-70">
                         <Ionicons name="chevron-back" size={20} color={colors.primary} />
                       </Pressable>
@@ -478,10 +445,7 @@ export function ExpenseForm({
                         accessibilityLabel="Later date"
                         accessibilityState={{ disabled: isSameDay(date, new Date()) }}
                         disabled={isSameDay(date, new Date())}
-                        onPress={() => {
-                          setDate((current) => shiftDays(current, 1));
-                          clearSaved();
-                        }}
+                        onPress={() => setDate((current) => shiftDays(current, 1))}
                         className="h-10 w-10 items-center justify-center rounded-xl bg-primary/15 active:opacity-70">
                         <Ionicons
                           name="chevron-forward"
@@ -559,7 +523,6 @@ export function ExpenseForm({
         selectedId={categoryId}
         onSelect={(id) => {
           setCategoryId(id);
-          clearSaved();
           setPickerOpen(false);
         }}
         onClose={() => setPickerOpen(false)}

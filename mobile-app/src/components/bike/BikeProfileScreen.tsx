@@ -13,6 +13,7 @@ import type { Mileage } from '@/src/features/fuel/mileage';
 import { useWelcomeGate } from '@/src/features/onboarding/useWelcomeGate';
 import { latestMileage } from '@/src/repositories/fuelRepository';
 import { colors } from '@/src/theme/colors';
+import { showToast } from '@/src/utils/toast';
 
 export function BikeProfileScreen() {
   const router = useRouter();
@@ -21,7 +22,6 @@ export function BikeProfileScreen() {
   const [model, setModel] = useState(bike?.model ?? '');
   const [odo, setOdo] = useState(bike ? String(bike.currentOdo) : '');
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [mileage, setMileage] = useState<Mileage | null>(null);
 
   useFocusEffect(
@@ -46,12 +46,12 @@ export function BikeProfileScreen() {
   async function handleSave() {
     if (!canSave || currentOdo === null) return;
     setSaving(true);
-    setError(null);
     try {
       await saveBike({ brand: brand.trim(), model: model.trim(), currentOdo });
+      showToast('Bike saved');
       router.back();
     } catch {
-      setError('Could not save this bike. Try again.');
+      showToast('Could not save this bike. Try again.', 'long');
       setSaving(false);
     }
   }
@@ -86,8 +86,6 @@ export function BikeProfileScreen() {
           <NameField label="Model" value={model} onChangeText={setModel} placeholder="Model" />
 
           <OdoField value={odo} onChangeText={setOdo} />
-
-          {error ? <Text className="text-center text-sm text-danger">{error}</Text> : null}
 
           <Pressable
             accessibilityRole="button"
